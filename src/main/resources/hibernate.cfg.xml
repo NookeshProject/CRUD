@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <!-- Database connection settings -->
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/user</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.connection.password">root</property>
+
+        <!-- JDBC connection pool settings (optional) -->
+        <property name="hibernate.connection.pool_size">5</property>
+
+        <!-- SQL dialect for MySQL -->
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+
+        <!-- Enable Hibernate's automatic session context management -->
+        <property name="hibernate.current_session_context_class">thread</property>
+
+        <!-- Disable the second-level cache (optional) -->
+        <property name="hibernate.cache.provider_class">org.hibernate.cache.NoCacheProvider</property>
+
+        <!-- Echo all executed SQL to stdout (optional) -->
+        <property name="hibernate.show_sql">true</property>
+
+        <!-- Drop and re-create the database schema on startup (optional) -->
+        <property name="hibernate.hbm2ddl.auto">update</property>
+
+        <!-- Mapping files -->
+        <!-- Add your mapping files here if using XML mapping, or specify annotated classes -->
+        <!--<mapping resource="com/example/YourEntity.hbm.xml"/>-->
+
+        <!-- If using annotated classes, specify package to scan -->
+        <!--<mapping package="com.example"/>-->
+        <mapping class="com.emp.model.Employee"/>
+    </session-factory>
+</hibernate-configuration>
