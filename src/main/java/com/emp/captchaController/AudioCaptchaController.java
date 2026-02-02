@@ -26,9 +26,13 @@ public class AudioCaptchaController {
 
         try {
             String captcha = captchaService.generateCaptcha();
+            
+            response.setContentType("audio/wav");
+            response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+            response.setHeader("Pragma", "no-cache");
+
             request.getSession().setAttribute("AUDIO_CAPTCHA", captcha);
 
-            response.setContentType("audio/wav");
             audioCaptchaService.playCaptcha(
                     captcha,
                     response.getOutputStream()

@@ -120,10 +120,10 @@ h2{
             
             <div class="captcha-box">
 
-	            <audio id="captchaAudio" controls>
-	                <source src="audio-captcha?ts=<%=System.currentTimeMillis()%>" type="audio/wav">
-	                Your browser does not support audio.
-	            </audio>
+	            <audio controls>
+				    <source src="audio-captcha?ts=<%=System.currentTimeMillis()%>" type="audio/wav">
+				    Your browser does not support audio.
+				</audio>
 	
 	            <button type="button" class="refresh-btn" onclick="refreshCaptcha()">
 	                🔄 Refresh Audio
