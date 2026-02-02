@@ -117,6 +117,26 @@ h2{
             <input type="text" name="name" placeholder="Name" required="required">
             <input type="text" name="designation" placeholder="Designation" required="required" >
             <input type="text" name="salary" placeholder="Salary" required="required">
+            
+            <div class="captcha-box">
+
+	            <audio id="captchaAudio" controls>
+	                <source src="audio-captcha?ts=<%=System.currentTimeMillis()%>" type="audio/wav">
+	                Your browser does not support audio.
+	            </audio>
+	
+	            <button type="button" class="refresh-btn" onclick="refreshCaptcha()">
+	                🔄 Refresh Audio
+	            </button>
+	
+	            <input type="text"
+	                   name="captcha"
+	                   placeholder="Enter what you hear"
+	                   required>
+	
+	        </div>
+	        <!-- 🔐 AUDIO CAPTCHA END -->
+
             <button type="submit">Submit</button>
         </form>
         <a href="index.jsp"> Home page</a>

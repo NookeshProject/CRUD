@@ -6,6 +6,7 @@ import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -139,44 +140,67 @@ public class EmployeeSearchController {
         return "insert"; // This is the logical view name for page2.jsp
     }
 	
-	 @PostMapping("/insert")
-	    public String insertEmployee(HttpServletRequest request) {
-	        EmployeeService service = null;
-	        try {
-	            service = (EmployeeService) ManagerFactory.getManagerInstance(EmpSeviceConstants.EMPLOYEE_SERVICE);
+	@PostMapping("/insert")
+	public String insertEmployee(HttpServletRequest request) {
 
-	            String id = request.getParameter("id");
-	            String name = request.getParameter("name");
-	            String designation = request.getParameter("designation");
-	            String salary = request.getParameter("salary");
-	            if (id == null || id.equals("0") || id.trim().isEmpty() || name == null || name.trim().isEmpty()) {
-	                request.setAttribute("errorMessage", "Failed to insert employee. Please give appropriate values.");
-	                return "insert";
-	            } else {
+	    EmployeeService service = null;
 
+	    try {
+	        service = (EmployeeService) ManagerFactory
+	                .getManagerInstance(EmpSeviceConstants.EMPLOYEE_SERVICE);
 
-	            Employee employee = new Employee();
-	            employee.seteId(Integer.parseInt(id));
-	            employee.seteName(name);
-	            employee.setDesignation(designation);
-	            employee.setSal(Double.parseDouble(salary));
+	        String id = request.getParameter("id");
+	        String name = request.getParameter("name");
+	        String designation = request.getParameter("designation");
+	        String salary = request.getParameter("salary");
 
-	            boolean success = service.addEmployee(employee);
-	            if (success) {
-	                return "redirect:/empHome"; // Redirect to the employee search page
-	            } else {
-	                
-	                request.setAttribute("errorMessage", "Failed to insert employee. Please try again.");
-	                return "empHome";
-	            }
-	           }
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	            
-	            request.setAttribute("errorMessage", "An error occurred while processing your request.");
-	            return "empHome";
+	        // 🔐 CAPTCHA VALIDATION START
+	        HttpSession session = request.getSession(false);
+	        String userCaptcha = request.getParameter("captcha");
+	        String sessionCaptcha = (String) session.getAttribute("AUDIO_CAPTCHA");
+
+	        // One-time use
+	        session.removeAttribute("AUDIO_CAPTCHA");
+
+	        if (sessionCaptcha == null || userCaptcha == null ||
+	            !sessionCaptcha.equals(userCaptcha)) {
+
+	            request.setAttribute("errorMessage", "Invalid audio captcha. Please try again.");
+	            return "insert";
 	        }
-	        
+	        // 🔐 CAPTCHA VALIDATION END
+
+	        if (id == null || id.equals("0") || id.trim().isEmpty()
+	                || name == null || name.trim().isEmpty()) {
+
+	            request.setAttribute("errorMessage",
+	                    "Failed to insert employee. Please give appropriate values.");
+	            return "insert";
+	        }
+
+	        Employee employee = new Employee();
+	        employee.seteId(Integer.parseInt(id));
+	        employee.seteName(name);
+	        employee.setDesignation(designation);
+	        employee.setSal(Double.parseDouble(salary));
+
+	        boolean success = service.addEmployee(employee);
+
+	        if (success) {
+	            return "redirect:/empHome";
+	        } else {
+	            request.setAttribute("errorMessage",
+	                    "Failed to insert employee. Please try again.");
+	            return "insert";
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        request.setAttribute("errorMessage",
+	                "An error occurred while processing your request.");
+	        return "insert";
 	    }
+	}
+
 
 }
