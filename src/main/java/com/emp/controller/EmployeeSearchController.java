@@ -1,14 +1,19 @@
 package com.emp.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.emp.captchaService.CaptchaService;
 import com.emp.constants.EmpSeviceConstants;
 import com.emp.model.Employee;
 import com.emp.service.EmployeeService;
@@ -16,6 +21,8 @@ import com.emp.service.ManagerFactory;
 
 @Controller
 public class EmployeeSearchController {
+	@Autowired
+    private CaptchaService captchaService;
 
     // ================= SEARCH BY CRITERIA =================
 
@@ -177,55 +184,55 @@ public class EmployeeSearchController {
     // ================= INSERT =================
 
     @GetMapping("/inserting")
-    public String navigateToPage2() {
-        System.out.println("➡️ Navigating to insert page");
+    public String navigateToPage2(HttpSession session) {
+
+        // Generate captcha on first load
+        String captcha = captchaService.generateCaptcha();
+
+        session.setAttribute("AUDIO_CAPTCHA", captcha);
+
+        System.out.println("🔐 Captcha generated on page load: " + captcha);
+
         return "insert";
     }
 
-    @PostMapping("/insert")
-    public String insertEmployee(HttpServletRequest request) {
 
-        System.out.println("➡️ Entered /insert");
+    @PostMapping("/insert")
+    @ResponseBody
+    public Map<String, Object> insertEmployee(HttpServletRequest request) {
+
+        Map<String, Object> result = new HashMap<>();
 
         try {
             EmployeeService service =
-                    (EmployeeService) ManagerFactory.getManagerInstance(EmpSeviceConstants.EMPLOYEE_SERVICE);
+                (EmployeeService) ManagerFactory.getManagerInstance(
+                        EmpSeviceConstants.EMPLOYEE_SERVICE);
 
             String id = request.getParameter("id");
             String name = request.getParameter("name");
             String designation = request.getParameter("designation");
             String salary = request.getParameter("salary");
 
-            System.out.println("📥 Insert Params → id=" + id +
-                    ", name=" + name +
-                    ", designation=" + designation +
-                    ", salary=" + salary);
-
-            // 🔐 CAPTCHA VALIDATION
+            // 🔐 CAPTCHA
             HttpSession session = request.getSession(false);
             String userCaptcha = request.getParameter("captcha");
             String sessionCaptcha = (String) session.getAttribute("AUDIO_CAPTCHA");
-
-            System.out.println("🔐 Captcha → user=" + userCaptcha +
-                    ", session=" + sessionCaptcha);
-
             session.removeAttribute("AUDIO_CAPTCHA");
 
             if (sessionCaptcha == null || userCaptcha == null ||
-                    !sessionCaptcha.equals(userCaptcha)) {
+                !sessionCaptcha.equals(userCaptcha)) {
 
-                System.out.println("❌ CAPTCHA FAILED");
-                request.setAttribute("errorMessage", "Invalid audio captcha. Please try again.");
-                return "insert";
+                result.put("status", "error");
+                result.put("message", "Invalid audio captcha. Please try again.");
+                return result;
             }
 
             if (id == null || id.equals("0") || id.trim().isEmpty()
                     || name == null || name.trim().isEmpty()) {
 
-                System.out.println("❌ Validation failed");
-                request.setAttribute("errorMessage",
-                        "Failed to insert employee. Please give appropriate values.");
-                return "insert";
+                result.put("status", "error");
+                result.put("message", "Please give appropriate values.");
+                return result;
             }
 
             Employee employee = new Employee();
@@ -236,22 +243,20 @@ public class EmployeeSearchController {
 
             boolean success = service.addEmployee(employee);
 
-            System.out.println("💾 Insert result: " + success);
-
             if (success) {
-                return "redirect:/index.jsp";
+                result.put("status", "success");
+                result.put("redirect", "empHome");
             } else {
-                request.setAttribute("errorMessage",
-                        "Failed to insert employee. Please try again.");
-                return "insert";
+                result.put("status", "error");
+                result.put("message", "Failed to insert employee.");
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Exception in /insert");
             e.printStackTrace();
-            request.setAttribute("errorMessage",
-                    "An error occurred while processing your request.");
-            return "insert";
+            result.put("status", "error");
+            result.put("message", "Server error occurred.");
         }
+
+        return result;
     }
 }
